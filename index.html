@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APKHUB | Download APKs Securely</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        .title-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+        }
+        .card-hover:hover {
+            transform: perspective(1000px) rotateX(5deg) rotateY(-5deg) translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(79, 70, 229, 0.5);
+        }
+        .search-glowing {
+            box-shadow: 0 0 15px rgba(79, 70, 229, 0.7);
+        }
+        .progress-dots span {
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+        .progress-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .progress-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .floating-icons {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .apk-icon {
+            transition: all 0.3s ease;
+        }
+        .apk-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        .futuristic-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+        .futuristic-btn:hover {
+            transform: translateY(-3px);
+        }
+        .futuristic-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+        .futuristic-btn:hover::after {
+            animation: shine 1.5s ease infinite;
+            opacity: 1;
+        }
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        .modal-animate {
+            animation: modalFade 0.3s ease-out;
+        }
+        @keyframes modalFade {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .download-progress {
+            width: 0%;
+            transition: width 2s ease-in-out;
+        }
+        /* Dynamically set width via JS by toggling this class */
+        .progress-bar-width {
+            width: var(--progress-width, 0%);
+        }
+        .download-animation {
+            animation: downloadPulse 2s infinite;
+        }
+        @keyframes downloadPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <div id="vanta-bg"></div>
+
+    <!-- Header -->
+    <header class="relative z-50">
+        <nav class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h1 class="title-font text-2xl font-bold text-white">APK<span class="text-indigo-400">HUB</span></h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-gray-300 hover:text-white transition">Home</a>
+                    <a href="#" class="text-gray-300 hover:text-white transition">Categories</a>
+                    <a href="#" class="text-gray-300 hover:text-white transition">Featured</a>
+                    <a href="#" class="text-gray-300 hover:text-white transition">About</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="hidden md:block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg futuristic-btn">
+                        Made by Sky
+                    </button>
+                    <button id="mobile-menu" type="button" title="Open mobile menu" class="md:hidden text-white focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-nav" class="hidden md:hidden mt-4 space-y-2">
+                <a href="#" class="block px-2 py-1 text-gray-300 hover:text-white">Home</a>
+                <a href="#" class="block px-2 py-1 text-gray-300 hover:text-white">Categories</a>
+                <a href="#" class="block px-2 py-1 text-gray-300 hover:text-white">Featured</a>
+                <a href="#" class="block px-2 py-1 text-gray-300 hover:text-white">About</a>
+                <button class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg futuristic-btn mt-2">
+                    Made by Sky
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 py-16 md:py-24 px-4">
+        <div class="container mx-auto text-center">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="title-font text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+                    Download <span class="text-indigo-400">Safe</span> APKs
+                </h2>
+                <p class="text-lg text-gray-300 mb-8">
+                    Hi! I'm Sky, a teen from Germany running APKHub solo. All mods here are free—if you enjoy the site, please consider supporting on Patreon!
+                </p>
+                </p>
+                <div class="relative max-w-xl mx-auto mb-12">
+                    <input type="text" placeholder="Search APKs..." 
+                        class="w-full bg-gray-800 bg-opacity-70 border border-gray-700 rounded-full py-3 px-6 text-white focus:outline-none focus:border-indigo-500 transition search-glowing">
+                    <button type="button" title="Search" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 transition futuristic-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+    </section>
+
+    <!-- Featured APKs Section -->
+    <section class="relative z-10 py-12 px-4">
+        <div class="container mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="title-font text-2xl md:text-3xl font-bold text-white">
+                    Featured <span class="text-indigo-400">APKs</span>
+                </h2>
+                <a href="#" class="flex items-center text-gray-400 hover:text-indigo-400 transition">
+                    <span>View All</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- APK Card 1 -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl overflow-hidden border border-gray-700 card-hover">
+                    <div class="relative">
+                        <div class="h-48 bg-indigo-900 bg-opacity-30 flex items-center justify-center">
+                            <div class="w-50 h-50 bg-white bg-opacity-20 rounded-lg flex items-center justify-center apk-icon">
+                                <img src="https://i.ytimg.com/vi/cRftfqrqecM/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AHUBoAC4AOKAgwIABABGGUgQChSMA8=&rs=AOn4CLBlY5mMzCvOereXYiaieReSVVJnEQ" alt="Mayuko's Little Kitchen" class="w-40 h-40 object-contain">
+                            </div>
+                        </div>
+                        <div class="absolute top-2 right-2 flex space-x-1">
+                            <button class="bg-gray-900 bg-opacity-70 text-yellow-400 text-xs px-2 py-1 rounded">
+                                Premium
+                            </button>
+                            <button class="bg-gray-900 bg-opacity-70 text-green-400 text-xs px-2 py-1 rounded">
+                                v8.5.2
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-white font-bold mb-1">Mayuko's Little Kitchen</h3>
+                        <p class="text-gray-400 text-sm mb-3">last Updated: 07.06.25</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span class="text-gray-300 ml-1 text-sm">4.8</span>
+                            </div>
+
+                        </div>
+                        <button type="button" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg futuristic-btn" onclick="window.location.href='https://link-target.net/1250820/fEzJobcilGpc'">
+                            Download APK
+                        </button>
+                    </div>
+                </div>
+
+                <!-- APK Card 2 -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl overflow-hidden border border-gray-700 card-hover">
+                    <div class="relative">
+                        <div class="h-48 bg-purple-900 bg-opacity-30 flex items-center justify-center">
+                            <div class="w-50 h-50 bg-white bg-opacity-20 rounded-lg flex items-center justify-center apk-icon">
+                                <img src="https://th.bing.com/th/id/OIP.kwxLwzYO4stVK3L5r0MneQHaEK?rs=1&pid=ImgDetMain" alt="Instagram" class="w-30 h-30 object-contain">
+                            </div>
+                        </div>
+                        <div class="absolute top-2 right-2 flex space-x-1">
+                            <button class="bg-gray-900 bg-opacity-70 text-yellow-400 text-xs px-2 py-1 rounded">
+                                Premium
+                            </button>
+                            <button class="bg-gray-900 bg-opacity-70 text-green-400 text-xs px-2 py-1 rounded">
+                                v215.0.0
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-white font-bold mb-1">Melancholianna</h3>
+                        <p class="text-gray-400 text-sm mb-3">last Updated: 07.06.25</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span class="text-gray-300 ml-1 text-sm">4.9</span>
+                            </div>
+                        </div>
+                        <button type="button" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg futuristic-btn" onclick="window.location.href='https://link-target.net/1250820/fEzJobcilGpc'">
+                            Download APK
+                        </button>
+                    </div>
+                </div>
+
+                <!-- APK Card 3 -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl overflow-hidden border border-gray-700 card-hover">
+                    <div class="relative">
+                        <div class="h-48 bg-red-900 bg-opacity-30 flex items-center justify-center">
+                            <div class="w-20 h-20 bg-white bg-opacity-20 rounded-lg flex items-center justify-center apk-icon">
+                                
+                            </div>
+                        </div>
+                        <div class="absolute top-2 right-2 flex space-x-1">
+                            <button class="bg-gray-900 bg-opacity-70 text-yellow-400 text-xs px-2 py-1 rounded">
+                                Premium
+                            </button>
+                            <button class="bg-gray-900 bg-opacity-70 text-green-400 text-xs px-2 py-1 rounded">
+                                v17.45.36
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-white font-bold mb-1">Work in progress</h3>
+                        <p class="text-gray-400 text-sm mb-3">Background play, no ads, download videos</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span class="text-gray-300 ml-1 text-sm">4.7</span>
+                            </div>
+                        </div>
+                        <button type="button" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg futuristic-btn" onclick="window.location.href='https://link-target.net/1250820/fEzJobcilGpc'">
+                            Download APK
+                        </button>
+                    </div>
+                </div>
+
+                <!-- APK Card 4 -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl overflow-hidden border border-gray-700 card-hover">
+                    <div class="relative">
+                        <div class="h-48 bg-blue-900 bg-opacity-30 flex items-center justify-center">
+                            <div class="w-20 h-20 bg-white bg-opacity-20 rounded-lg flex items-center justify-center apk-icon">
+                                
+                            </div>
+                        </div>
+                        <div class="absolute top-2 right-2 flex space-x-1">
+                            <button class="bg-gray-900 bg-opacity-70 text-yellow-400 text-xs px-2 py-1 rounded">
+                                Premium
+                            </button>
+                            <button class="bg-gray-900 bg-opacity-70 text-green-400 text-xs px-2 py-1 rounded">
+                                v2.21.24.20
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-white font-bold mb-1">Work in progress</h3>
+                        <p class="text-gray-400 text-sm mb-3">Custom themes, hide status, anti-ban</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span class="text-gray-300 ml-1 text-sm">4.6</span>
+                            </div>
+                        </div>
+                        <button type="button" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg futuristic-btn" onclick="window.location.href='https://link-target.net/1250820/fEzJobcilGpc'">
+                            Download APK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="relative z-10 py-16 px-4 bg-gray-900 bg-opacity-70">
+        <div class="container mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="title-font text-2xl md:text-3xl font-bold text-white mb-4">
+                    How <span class="text-indigo-400">APKHUB</span> Works
+                </h2>
+                <p class="max-w-2xl mx-auto text-gray-400">
+                    Download premium APKs in just a few simple steps. All our files are scanned and verified for safety.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700 card-hover">
+                    <div class="w-14 h-14 bg-indigo-600 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <span class="text-white title-font text-xl font-bold">1</span>
+                    </div>
+                    <h3 class="text-white font-bold text-lg text-center mb-3">Search APK</h3>
+                    <p class="text-gray-400 text-center">
+                        Find the APK you need using our search or browse through categories.
+                    </p>
+                </div>
+
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700 card-hover">
+                    <div class="w-14 h-14 bg-indigo-600 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <span class="text-white title-font text-xl font-bold">2</span>
+                    </div>
+                    <h3 class="text-white font-bold text-lg text-center mb-3">Download</h3>
+                    <p class="text-gray-400 text-center">
+                        Click the download button and wait for the APK to download.
+                    </p>
+                </div>
+
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700 card-hover">
+                    <div class="w-14 h-14 bg-indigo-600 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <span class="text-white title-font text-xl font-bold">3</span>
+                    </div>
+                    <h3 class="text-white font-bold text-lg text-center mb-3">Install & Enjoy</h3>
+                    <p class="text-gray-400 text-center">
+                        Install the APK on your device and enjoy premium features.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Donate Section -->
+    <section class="relative z-10 py-20 px-4 bg-indigo-900 bg-opacity-20">
+        <div class="container mx-auto">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="title-font text-3xl md:text-4xl font-bold text-white mb-6">
+                    Support <span class="text-indigo-400">APKHUB</span>
+                </h2>
+                <p class="text-gray-300 mb-10">
+                    Help us keep this service running and ad-free. Your donations allow us to continue providing high-quality APKs.
+                </p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
+                    <div class="bg-gray-800 bg-opacity-60 rounded-lg p-6 border border-indigo-400 border-opacity-30 card-hover">
+                        <h3 class="text-white font-bold text-xl mb-3">Supporter</h3>
+                        <p class="text-gray-300 text-sm mb-6">Basic support to keep us going</p>
+                        <div class="text-indigo-400 font-bold text-3xl mb-6">$3</div>
+                        <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg futuristic-btn" onclick="window.location.href='https://patreon.com/SkyModsPE'">
+                            Donate
+                        </button>
+                    </div>
+
+                    <div class="bg-gray-800 bg-opacity-60 rounded-lg p-6 border-2 border-indigo-500 card-hover transform scale-105">
+                        <div class="absolute top-0 right-0 bg-indigo-600 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg">
+                            Popular
+                        </div>
+                        <h3 class="text-white font-bold text-xl mb-3">Premium</h3>
+                        <p class="text-gray-300 text-sm mb-6">Get access to exclusive content</p>
+                        <div class="text-indigo-400 font-bold text-3xl mb-6">$10</div>
+                        <button class="w-full bg-indigo-700 hover:bg-indigo-800 text-white py-2 rounded-lg futuristic-btn" onclick="window.location.href='https://patreon.com/SkyModsPE'">
+                            Donate
+                        </button>
+                    </div>
+
+                    <div class="bg-gray-800 bg-opacity-60 rounded-lg p-6 border border-indigo-400 border-opacity-30 card-hover">
+                        <h3 class="text-white font-bold text-xl mb-3">VIP</h3>
+                        <p class="text-gray-300 text-sm mb-6">Priority access to new releases</p>
+                        <div class="text-indigo-400 font-bold text-3xl mb-6">$25</div>
+                        <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg futuristic-btn" onclick="window.location.href='https://patreon.com/SkyModsPE'">
+                            Donate
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <div class="mb-8 text-white">
+                        <span class="block text-sm mb-2">Or support us monthly on</span>
+                        <button class="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-full flex items-center futuristic-btn" onclick="window.location.href='https://patreon.com/SkyModsPE'">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                            </svg>
+                            Become a Patron
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative z-10 py-12 px-4 bg-gray-900">
+        <div class="container mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+                <div>
+                    <h3 class="title-font text-white text-lg font-bold mb-4 flex items-center">
+                        APK<span class="text-indigo-400">HUB</span>
+                    </h3>
+                    <p class="text-gray-400 text-sm">
+                        The ultimate repository for premium APKs. Verified safe downloads since 2023.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-4">Categories</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition text-sm">Social Media</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition text-sm">Video Streaming</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition text-sm">Utilities</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition text-sm">Games</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-4">Company</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition text-sm">About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition text-sm">Contact</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition text-sm">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition text-sm">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-4">Connect</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" title="Visit Facebook" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-indigo-600 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
+                            </svg>
+                        </a>
+                        <a href="#" title="Visit Instagram" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-pink-600 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/>
+                            </svg>
+                        </a>
+                        <a href="#" title="Visit Twitter" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-blue-400 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
+                            </svg>
+                        </a>
+                        <a href="#" title="Visit YouTube" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.007 2.007 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.007 2.007 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31.4 31.4 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.007 2.007 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A99.788 99.788 0 0 1 7.858 2h.193zM6.4 5.209v4.818l4.157-2.408L6.4 5.209z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-10 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm order-last md:order-first mt-4 md:mt-0">
+                    &copy; 2023 APKHUB. All rights reserved.
+                </p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition text-sm">Privacy Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition text-sm">Terms of Service</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition text-sm">Cookie Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition text-sm">DMCA</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- APK Details Modal -->
+    <div id="apkModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-900 opacity-90"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-gray-800 rounded-xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-animate" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+                <div class="px-6 py-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 id="modalTitle" class="text-xl font-bold text-white"></h3>
+                        <button type="button" title="Close" onclick="closeModal()" class="text-gray-400 hover:text-white" aria-label="Close">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-300">Version:</span>
+                            <span class="text-white">8.5.2</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-300">Size:</span>
+                            <span class="text-white">42.5 MB</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-300">Updated:</span>
+                            <span class="text-white">April 15, 2023</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-300">Downloads:</span>
+                            <span class="text-white">25,412</span>
+                        </div>
+                    </div>
+                    
+                    <h4 class="text-white font-bold mb-2">Features:</h4>
+                    <ul class="mb-6 text-gray-300 text-sm space-y-2">
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Unlocked premium features</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>No advertisements</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Media download capability</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Verified safe to use</span>
+                        </li>
+                    </ul>
+                    
+                    <h4 class="text-white font-bold mb-2">How to Install:</h4>
+                    <ol class="mb-6 text-gray-300 text-sm space-y-2">
+                        <li class="flex">
+                            <span class="bg-gray-700 rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0">1</span>
+                            <span>Download the APK file</span>
+                        </li>
+                        <li class="flex">
+                            <span class="bg-gray-700 rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0">2</span>
+                            <span>Go to Settings > Security > Enable "Unknown Sources"</span>
+                        </li>
+                        <li class="flex">
+                            <span class="bg-gray-700 rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0">3</span>
+                            <span>Locate the downloaded APK and tap to install</span>
+                        </li>
+                        <li class="flex">
+                            <span class="bg-gray-700 rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0">4</span>
+                            <span>Follow the on-screen instructions</span>
+                        </li>
+                    </ol>
+                    
+                    <div class="flex space-x-4">
+                        <button class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition futuristic-btn" onclick="startDownload(document.getElementById('modalTitle').innerText)">
+                            Download APK
+                        </button>
+                        <button class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition futuristic-btn" onclick="closeModal()">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Modal -->
+    <div id="downloadModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-900 opacity-90"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-gray-800 rounded-xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-animate" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+                <div class="px-6 py-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 id="downloadTitle" class="text-xl font-bold text-white">Downloading</h3>
+                        <button type="button" title="Cancel Download" onclick="cancelDownload()" class="text-gray-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="downloadProgress" class="hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-300">File:</span>
+                            <span id="downloadFileName" class="text-white"></span>
+                        </div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-gray-300">Size:</span>
+                            <span class="text-white">42.5 MB</span>
+                                <div id="progressBar" class="h-full bg-indigo-600 rounded-full download-progress"></div>
+                        
+                        <div class="mb-6">
+                            <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                <div id="progressBar" class="h-full bg-indigo-600 rounded-full download-progress progress-bar-width"></div>
+                            </div>
+                            <div class="flex justify-between mt-2 text-sm text-gray-400">
+                                <span id="progressPercent">0%</span>
+                                <span id="downloadSpeed">0 KB/s</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="downloadInitializing" class="text-center py-8">
+                        <div class="flex justify-center mb-4 progress-dots">
+                            <span class="w-3 h-3 bg-indigo-400 rounded-full mx-1"></span>
+                            <span class="w-3 h-3 bg-indigo-400 rounded-full mx-1"></span>
+                            <span class="w-3 h-3 bg-indigo-400 rounded-full mx-1"></span>
+                        </div>
+                        <p class="text-gray-300">Preparing download...</p>
+                    </div>
+                    
+                    <div id="downloadComplete" class="hidden">
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <h4 class="text-white font-bold text-lg mb-2">Download Complete!</h4>
+                            <p class="text-gray-300 mb-6">Your APK has been successfully downloaded</p>
+                            <div class="flex space-x-4">
+                                <button class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition futuristic-btn" onclick="window.location.href='#install-instructions'">
+                                    Installation Guide
+                                </button>
+                                <button class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition futuristic-btn" onclick="closeDownloadModal()">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="downloadDisclaimer" class="text-xs text-gray-500 mt-6">
+                        <p>By downloading this APK, you agree that APKHUB is not responsible for any damages or issues caused by installing third-party applications. Use at your own risk.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div id="donateModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-900 opacity-90"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-gray-800 rounded-xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-animate" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+                <div class="px-6 py-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-white">Support APKHUB</h3>
+                        <button type="button" title="Close" onclick="closeDonateModal()" class="text-gray-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <p class="text-gray-300 mb-6">
+                        Your donation helps us maintain this service, cover server costs, and continue providing high-quality APKs. Thank you for your support!
+                    </p>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-300 mb-2">Select Amount (USD)</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button class="donation-option bg-gray-700 hover:bg-indigo-600 text-white py-2 rounded futuristic-btn" data-amount="3">
+                                $3
+                            </button>
+                            <button class="donation-option bg-gray-700 hover:bg-indigo-600 text-white py-2 rounded futuristic-btn" data-amount="5">
+                                $5
+                            </button>
+                            <button class="donation-option bg-gray-700 hover:bg-indigo-600 text-white py-2 rounded futuristic-btn" data-amount="10">
+                                $10
+                            </button>
+                            <button class="donation-option bg-gray-700 hover:bg-indigo-600 text-white py-2 rounded futuristic-btn" data-amount="25">
+                                $25
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-300 mb-2">Custom Amount</label>
+                        <input type="number" id="customAmount" placeholder="Enter amount" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-300 mb-2">Payment Method</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="payment-method flex-1 bg-gray-700 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center justify-center futuristic-btn" data-method="paypal">
+                                <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png" alt="PayPal" class="h-5 mr-2">
+                            </button>
+                            <button class="payment-method flex-1 bg-gray-700 hover:bg-purple-600 text-white py-2 px-4 rounded flex items-center justify-center futuristic-btn" data-method="stripe">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png" alt="Stripe" class="h-5 mr-2">
+                            </button>
+                            <button class="payment-method flex-1 bg-gray-700 hover:bg-indigo-600 text-white py-2 px-4 rounded flex items-center justify-center futuristic-btn" data-method="crypto">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                Crypto
+                            </button>
+                            <button class="payment-method flex-1 bg-gray-700 hover:bg-pink-600 text-white py-2 px-4 rounded flex items-center justify-center futuristic-btn" data-method="patreon">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                                </svg>
+                                Patreon
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <button id="donateButton" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition futuristic-btn disabled:opacity-50" disabled>
+                            Donate $0
+                        </button>
+                        <button class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition futuristic-btn" onclick="closeDonateModal()">
+                            Cancel
+                        </button>
+                    </div>
+                    
+                    <div class="text-xs text-gray-500 mt-6">
+                        <p>All donations are final. We appreciate your support! We'll send a confirmation email with your donation details.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Vanta.js background
+        VANTA.NET({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x5f45e0,
+            backgroundColor: 0x111827,
+            points: 12.00,
+            maxDistance: 26.00,
+            spacing: 18.00
+        });
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu');
+        const mobileNav = document.getElementById('mobile-nav');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileNav.classList.toggle('hidden');
+        });
+
+        // Modal functions
+        function openModal(apkName) {
+            document.getElementById('modalTitle').textContent = apkName;
+            document.getElementById('apkModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('apkModal').classList.add('hidden');
+        }
+
+        // Download functions
+        function startDownload(apkName) {
+            document.getElementById('downloadTitle').textContent = `Downloading ${apkName}`;
+            document.getElementById('downloadFileName').textContent = `${apkName.replace(/\s+/g, '_')}_v8.5.2.apk`;
+            document.getElementById('downloadModal').classList.remove('hidden');
+            
+            // Hide details initially and show progress dots
+            document.getElementById('downloadProgress').classList.add('hidden');
+            document.getElementById('downloadInitializing').classList.remove('hidden');
+            document.getElementById('downloadComplete').classList.add('hidden');
+            
+            // Simulate initializing delay
+            setTimeout(() => {
+                document.getElementById('downloadInitializing').classList.add('hidden');
+                document.getElementById('downloadProgress').classList.remove('hidden');
+                simulateDownload();
+            }, 500);
+        }
+
+        function simulateDownload() {
+            let progress = 0;
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            const downloadSpeed = document.getElementById('downloadSpeed');
+            // Ensure the progress bar uses the helper class
+            progressBar.classList.add('progress-bar-width');
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                if (progress > 100) progress = 100;
+                
+                progressBar.style.setProperty('--progress-width', `${progress}%`);
+                progressPercent.textContent = `${Math.floor(progress)}%`;
+                
+                // Random download speed between 1-5 MB/s
+                const speed = (1 + Math.random() * 4).toFixed(1);
+                downloadSpeed.textContent = `${speed} MB/s`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('downloadProgress').classList.add('hidden');
+                        document.getElementById('downloadComplete').classList.remove('hidden');
+                        // Reset progress bar for next time
+                        progressBar.style.setProperty('--progress-width', `0%`);
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        function cancelDownload() {
+            closeDownloadModal();
+        }
+
+        function closeDownloadModal() {
+            document.getElementById('downloadModal').classList.add('hidden');
+        }
+
+        // Donation functions
+        function openDonate() {
+            document.getElementById('donateModal').classList.remove('hidden');
+            updateDonateButton();
+        }
+
+        function closeDonateModal() {
+            document.getElementById('donateModal').classList.add('hidden');
+        }
+
+        // Donation amount selection
+        const donationOptions = document.querySelectorAll('.donation-option');
+        const customAmount = document.getElementById('customAmount');
+        const donateButton = document.getElementById('donateButton');
+        let selectedAmount = 0;
+        let selectedMethod = '';
+
+        donationOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove selected class from all options
+                donationOptions.forEach(opt => {
+                    opt.classList.remove('bg-indigo-600');
+                    opt.classList.add('bg-gray-700');
+                });
+                
+                // Add selected class to clicked option
+                option.classList.remove('bg-gray-700');
+                option.classList.add('bg-indigo-600');
+                
+                selectedAmount = option.dataset.amount;
+                customAmount.value = '';
+                updateDonateButton();
+            });
+        });
+
+        customAmount.addEventListener('input', () => {
+            if (customAmount.value) {
+                // Remove selection from fixed amount buttons
+                donationOptions.forEach(opt => {
+                    opt.classList.remove('bg-indigo-600');
+                    opt.classList.add('bg-gray-700');
+                });
+                
+                selectedAmount = parseFloat(customAmount.value) || 0;
+                updateDonateButton();
+            }
+        });
+
+        // Payment method selection
+        const paymentMethods = document.querySelectorAll('.payment-method');
+        paymentMethods.forEach(method => {
+            method.addEventListener('click', () => {
+                // Remove selected class from all methods
+                paymentMethods.forEach(m => {
+                    m.classList.remove('bg-indigo-600', 'bg-blue-600', 'bg-purple-600', 'bg-pink-600');
+                    m.classList.add('bg-gray-700');
+                });
+                
+                // Add appropriate color based on method
+                if (method.dataset.method === 'paypal') {
+                    method.classList.remove('bg-gray-700');
+                    method.classList.add('bg-blue-600');
+                } else if (method.dataset.method === 'stripe') {
+                    method.classList.remove('bg-gray-700');
+                    method.classList.add('bg-purple-600');
+                } else if (method.dataset.method === 'crypto') {
+                    method.classList.remove('bg-gray-700');
+                    method.classList.add('bg-indigo-600');
+                } else if (method.dataset.method === 'patreon') {
+                    method.classList.remove('bg-gray-700');
+                    method.classList.add('bg-pink-600');
+                }
+                
+                selectedMethod = method.dataset.method;
+                updateDonateButton();
+            });
+        });
+
+        function updateDonateButton() {
+            if (selectedAmount > 0 && selectedMethod) {
+                donateButton.disabled = false;
+                
+                let buttonText = 'Donate';
+                if (selectedMethod === 'patreon') {
+                    buttonText = 'Become a Patron';
+                }
+                
+                donateButton.textContent = `${buttonText} $${selectedAmount}`;
+            } else {
+                donateButton.disabled = true;
+                donateButton.textContent = 'Donate $0';
+            }
+        }
+
+        // Handle donation submission
+        donateButton.addEventListener('click', () => {
+            if (selectedAmount > 0 && selectedMethod) {
+                if (selectedMethod === 'patreon') {
+                    window.location.href = 'https://www.patreon.com/apkhub';
+                } else {
+                    // Show processing animation
+                    donateButton.innerHTML = `
+                        <div class="flex items-center justify-center">
+                            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                            Processing...
+                        </div>
+                    `;
+                    
+                    // Simulate processing
+                    setTimeout(() => {
+                        alert(`Thank you for your donation of $${selectedAmount}! A confirmation will be sent to your email.`);
+                        closeDonateModal();
+                        donateButton.innerHTML = `Donate $${selectedAmount}`;
+                    }, 2000);
+                }
+            }
+        });
+
+        // Close modals when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === document.getElementById('apkModal')) {
+                closeModal();
+            }
+            if (event.target === document.getElementById('downloadModal')) {
+                closeDownloadModal();
+            }
+            if (event.target === document.getElementById('donateModal')) {
+                closeDonateModal();
+            }
+        });
+
+        // Card hover effect enhancement
+        document.querySelectorAll('.card-hover').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateY = 5 * ((x - centerX) / centerX);
+                const rotateX = -5 * ((y - centerY) / centerY);
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+            });
+        });
+    </script>
+</body>
+</html>
